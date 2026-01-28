@@ -18,8 +18,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class AppConfig {
 
-
-
     // 1) Repository Bean 등록 (인터페이스 타입으로 노출)
     // 아래는 @Bean 메서드
     @Bean
