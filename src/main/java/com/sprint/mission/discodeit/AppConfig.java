@@ -1,57 +1,88 @@
-package com.sprint.mission.discodeit;
+package com.sprint.mission.discodeit;  // ⚠️ 실제 AppConfig 패키지와 다르면 맞춰줘
 
-import com.sprint.mission.discodeit.repository.ChannelRepository;
-import com.sprint.mission.discodeit.repository.MessageRepository;
-import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
 import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
 import com.sprint.mission.discodeit.repository.file.FileUserRepository;
-import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFUserRepository;
+
+import com.sprint.mission.discodeit.service.*;
 import com.sprint.mission.discodeit.service.basic.BasicChannelService;
 import com.sprint.mission.discodeit.service.basic.BasicMessageService;
 import com.sprint.mission.discodeit.service.basic.BasicUserService;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class AppConfig {
 
-    // 1) Repository Bean 등록 (인터페이스 타입으로 노출)
-    // 아래는 @Bean 메서드
+    // =========================
+    // Repository Beans
+    // =========================
+
     @Bean
     public UserRepository userRepository() {
-        return new FileUserRepository();
+        return new FileUserRepository();   // 파일 저장
     }
 
     @Bean
     public ChannelRepository channelRepository() {
-        return new FileChannelRepository();
+        return new FileChannelRepository(); // 파일 저장
     }
 
     @Bean
     public MessageRepository messageRepository() {
-        return new FileMessageRepository();
-    }
-
-    // 2) Service Bean 등록 (인터페이스 타입으로 노출)
-    @Bean
-    public UserService userService(UserRepository userRepository) {
-        return new BasicUserService(userRepository);
+        return new FileMessageRepository(); // 파일 저장
     }
 
     @Bean
-    public ChannelService channelService(ChannelRepository channelRepository) {
-        return new BasicChannelService(channelRepository);
+    public BinaryContentRepository binaryContentRepository() {
+        return new BinaryContentRepository(); // 인터페이스 기본 구현 (현재 구조상 이거 맞음)
+    }
+
+    @Bean
+    public ReadStatusRepository readStatusRepository() {
+        return new ReadStatusRepository(); // JCF 기반
+    }
+
+    @Bean
+    public UserStatusRepository userStatusRepository() {
+        return new UserStatusRepository(); // JCF 기반
+    }
+
+    // =========================
+    // Service Beans
+    // =========================
+
+    @Bean
+    public UserService userService(
+            UserRepository userRepository,
+            UserStatusRepository userStatusRepository,
+            BinaryContentRepository binaryContentRepository
+    ) {
+        return new BasicUserService(userRepository, userStatusRepository, binaryContentRepository);
+    }
+
+    @Bean
+    public ChannelService channelService(
+            ChannelRepository channelRepository,
+            MessageRepository messageRepository,
+            UserRepository userRepository,
+            ReadStatusRepository readStatusRepository
+    ) {
+        return new BasicChannelService(channelRepository, messageRepository, userRepository, readStatusRepository);
     }
 
     @Bean
     public MessageService messageService(
             MessageRepository messageRepository,
             ChannelRepository channelRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            BinaryContentRepository binaryContentRepository
     ) {
-        return new BasicMessageService(messageRepository, channelRepository, userRepository);
+        return new BasicMessageService(messageRepository, channelRepository, userRepository, binaryContentRepository);
     }
 }
